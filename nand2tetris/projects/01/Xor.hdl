@@ -13,5 +13,14 @@ CHIP Xor {
     OUT out;
 
     PARTS:
-    // Put your code here:
+    // less efficient implementation
+    /*
+    Nand(a=a,b=b,out=nanded);
+    Or(a=a,b=b,out=ored);
+    And(a=nanded,b=ored,out=out);
+    */
+    Nand(a=a,b=b,out=nanded1);
+    Nand(a=a,b=nanded1,out=join1);
+    Nand(a=nanded1,b=b,out=join2);
+    Nand(a=join1,b=join2,out=out);
 }
