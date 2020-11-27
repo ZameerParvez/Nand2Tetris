@@ -42,5 +42,39 @@ CHIP ALU {
         ng; // 1 if (out < 0),  0 otherwise
 
     PARTS:
-   // Put you code here:
+    // implement behaviour for zx and nx
+    Not(in=zx,out=zerox);
+    // could have used Mux16 for zeroeing too
+    // Mux16(a=x,b=false,sel=zx,out=zworkingx);
+    BitTo16(in=zerox,out=zerox16);
+    And16(a=x,b=zerox16,out=zworkingx);
+    Not16(in=zworkingx,out=nworkingx);
+    Mux16(a=zworkingx,b=nworkingx,sel=nx,out=workingx);
+
+    // implement behaviour for zy and ny
+    Not(in=zy,out=zeroy);
+    BitTo16(in=zeroy,out=zeroy16);
+    And16(a=y,b=zeroy16,out=zworkingy);
+    Not16(in=zworkingy,out=nworkingy);
+    Mux16(a=zworkingy,b=nworkingy,sel=ny,out=workingy);
+
+    // implement behaviour for f and no
+    And16(a=workingx,b=workingy,out=fAnd);
+    Add16(a=workingx,b=workingy,out=fAdd);
+    Mux16(a=fAnd,b=fAdd,sel=f,out=workingf);
+    Not16(in=workingf,out=nworkingf);
+    Mux16(a=workingf,b=nworkingf,sel=no,out=tempout);
+    Copy16(in=tempout,out=out);
+
+    // implement behaviour for ng
+    // negative if most significant bit is 
+    // cant use sub bus of internal node, so made a new chip type
+    // could have done
+    // And16(a=output, b=true, out[15]=ng);
+    AndSigBit16(a=tempout,b=true,out=ng);
+
+    // implement behaviour for zr
+    // how to check for 0? must check that all bits are 0, or if any bits are 1, e.g. if 16wayOr(out, 0) returns 1
+    Or16Way(in=tempout,out=nzr);
+    Not(in=nzr,out=zr);
 }

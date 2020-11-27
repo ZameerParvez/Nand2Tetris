@@ -1,0 +1,12 @@
+/**
+ * Outputs 16 bits of the same 1 bit value.
+ */
+
+CHIP AndSigBit16 {
+    IN a[16],b;
+
+    OUT out;
+
+    PARTS:
+    And(a=a[15],b=b,out=out);
+}

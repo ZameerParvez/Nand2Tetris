@@ -1,0 +1,30 @@
+/**
+ * Outputs 16 bits of the same 1 bit value.
+ */
+
+CHIP Copy16 {
+    IN in[16];
+    OUT out[16];
+
+    PARTS:
+    And16(
+        a=in,
+        b[0]=true,
+        b[1]=true,
+        b[2]=true,
+        b[3]=true,
+        b[4]=true,
+        b[5]=true,
+        b[6]=true,
+        b[7]=true,
+        b[8]=true,
+        b[9]=true,
+        b[10]=true,
+        b[11]=true,
+        b[12]=true,
+        b[13]=true,
+        b[14]=true,
+        b[15]=true,
+        out=out
+        );
+}
