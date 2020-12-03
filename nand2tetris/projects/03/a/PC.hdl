@@ -16,5 +16,23 @@ CHIP PC {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    // Determines whether the pc register should be written to
+    // not really needed because the 3 mux statements do something similar, where m3=t only when inc&&load&&reset == 0
+    // Or(a=reset,b=load,out=temp);
+    // Or(a=temp,b=inc,out=ld);
+
+    // Increments the previous timesteps count
+    Inc16(in=t,out=t1);
+
+    Mux16(a=t,b=t1,sel=inc,out=m1);         // if inc, then set to t1, else leave as t (the previous pc output)
+    Mux16(a=m1,b=in,sel=load,out=m2);       // if load, then set to in, elseif leave as m1
+    Mux16(a=m2,b=false,sel=reset,out=m3);   // if reset, then set to false, elseif leave as m2
+    
+
+    // This register needs the output to be fedback into this PC chip, 
+    // so that other operations can be done with the outputs of the previous time step
+    // The in bits should be either 0,in[t],t(n+1) or t(n) (which are covered by the mux statements)
+    // The load bit should be true for load, reset or inc (although it can be left as true for the current set up)
+    Register(in=m3,load=true,out=t,out=out);
+
 }

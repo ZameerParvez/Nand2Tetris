@@ -15,5 +15,28 @@ CHIP RAM16K {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+
+    // this one is slightly different, it only needs a 4way dmux
+    DMux4Way(
+        in=load,
+        sel=address[12..13],  // 3 most significant bits
+        a=ldr1,
+        b=ldr2,
+        c=ldr3,
+        d=ldr4
+    );
+
+    RAM4K(in=in,load=ldr1,address=address[0..11],out=or1);
+    RAM4K(in=in,load=ldr2,address=address[0..11],out=or2);
+    RAM4K(in=in,load=ldr3,address=address[0..11],out=or3);
+    RAM4K(in=in,load=ldr4,address=address[0..11],out=or4);
+
+    Mux4Way16(
+        a=or1,
+        b=or2,
+        c=or3,
+        d=or4,
+        sel=address[12..13],
+        out=out
+    );
 }
