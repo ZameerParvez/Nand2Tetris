@@ -39,5 +39,60 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+    // instruction format is “ixxaccccccdddjjj”
+    // i is an opcode to say if it is a (1) C or (0) A instruction, A instructions just take write the value of the instruction into the A register
+    // x*2 isn't a used part of the instruction
+    // a determines whether to use inM or A as the input to the ALU
+    // c*6 bits are used to control which ALU operation to do
+    // d*3 bits determine which registers should accept the ALU output
+    // j*3 bits are used for branching controls
+    // this is architecture is based on the diagram given with the project
+
+    // selects whether to forwards the instruction or the alu output to the A register
+    Mux16(a=instruction, b=ALUOut, sel=instruction[15], out=RegMuxOut);
+
+    // true if it is an A instruction, and then loads the resultant value of the previous mux into A, if it is an A instruction, or the instruction wants to write ALU output to A
+    Not(in=instruction[15], out=IsAInst);
+    Or(a=instruction[5], b=IsAInst, out=WriteA);
+    ARegister(in=RegMuxOut, load=WriteA, out=AReg, out[0..14]=addressM);
+
+    // for c instruction choose if alu input is from A register or from inM using the "a" control bit
+    Mux16(a=AReg, b=inM, sel=instruction[12], out=ALUIn2);
+
+    // Set the D register based on a flag and the output of the alu
+    And(a=instruction[15], b=instruction[4], out=LOADD);
+    DRegister(in=ALUOut, load=LOADD, out=DReg);
+
+    // write to M if it is a C instruction and the write to m bit is set
+    And(a=instruction[15], b=instruction[3], out=WM, out=writeM);
+    Mux16(a[0..15]=false, b=ALUOut, sel=WM, out=outM);
+
+    // setting c control bits for ALU controls (zero x, negate x, zero y, negate y, f is add or and x and y, and no is negate output)
+    ALU(x=DReg,
+        y=ALUIn2,
+        zx=instruction[11],
+        nx=instruction[10],
+        zy=instruction[9],
+        ny=instruction[8],
+        f=instruction[7],
+        no=instruction[6],
+        out=ALUOut,
+        zr=ALUZROut, 
+        ng=ALUNGOut 
+    );
+
+    // pass flags into pc register to manipulate it a bit, jump flags for load, reset flag for reset, and if neither then increment
+    Not(in=ALUNGOut, out=NNG);
+    Not(in=ALUZROut, out=NZR);
+    And(a=instruction[0], b=NNG, out=LT1);
+    And(a=LT1, b=NZR, out=LT);
+    And(a=instruction[1], b=ALUZROut, out=EQ);
+    And(a=instruction[2], b=ALUNGOut, out=GT);
+
+    Or(a=LT, b=EQ, out=tempJMP);
+    Or(a=tempJMP, b=GT, out=tempJMP2);
+    
+    And(a=instruction[15], b=tempJMP2, out=JMP);
+
+    PC(in=AReg, load=JMP, inc=true, reset=reset, out[0..14]=pc);
 }

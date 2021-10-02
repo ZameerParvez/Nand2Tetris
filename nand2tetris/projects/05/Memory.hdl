@@ -27,5 +27,28 @@ CHIP Memory {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    // need to have memory in this order 
+    // (marking the start of their address spaces)
+    //              (RAM16K)      (Screen8K)      (Keyboard) (end)
+    // in decimal   (0 -> 16383)  (16384-> 24575) (24576)
+    // in hex       (0 -> 3FFF)   (4000 -> 5FFF)  (6000)
+    // in bin(4msb) (0000 -> 0011)(0100 -> 0101)  (0110)
+    // RAM could be selected by 000 and 001, Screen by 010, and KeyBoard by 011
+    // address is 15 bits, so would not have the most significant 0 (otherwise it would be a 16 bit address)
+    // this is like this because one of the bits in the instruction is used to flag the instruction is an address, and this machine uses 16 bit instructions
+    // so the Mux selector we will use are; RAM with 00 and 01, Screen with 10, and Keyboard with 11
+
+    // don't really write to keyboard, so LDKBD will only be used as a placeholder
+    DMux4Way(in=load, sel=address[13..14], a=LDRAM1, b=LDRAM2, c=LDScreen, d=LDKBD);
+    Or(a=LDRAM1, b=LDRAM2, out=LDRAM);
+
+    RAM16K(in=in, load=LDRAM, address=address[0..13], out=RAMOut);
+    // 0..12, because those are the bits that index each register in the screen ram, bits 13 and 14 have already been used to select the ram
+    Screen(in=in, load=LDScreen, address=address[0..12], out=ScreenOut);
+
+    // keyboard is readonly, so it doesn't take any input
+    Keyboard(out=KBDOut);
+
+    // addresses that are too big will always read out the keyboard
+    Mux4Way16(a=RAMOut, b=RAMOut, c=ScreenOut, d=KBDOut, sel=address[13..14], out=out);
 }
