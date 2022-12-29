@@ -1,3 +1,4 @@
+import os
 import sys
 import enum
 import re
@@ -273,9 +274,7 @@ if (n != 2):
     print("needs an input file name. e.g. if file is prog.asm, give prog")
     exit()
 
-# TODO: Improve input handling, currentlly this will outpout prog.asm.hack
-assemble(f"{sys.argv[1]}", f"{sys.argv[1]}.hack")
-
+assemble(f"{sys.argv[1]}", f"{os.path.splitext(sys.argv[1])[0]}.hack")
 
 # def testCInstructionRegexAndCode():
 #     cInstructionTests = [
